@@ -1,15 +1,17 @@
 {
-  description = "Unikernel development environment with Solo5";
+  description = "Unikernel development environment with Solo5 and KraftKit";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
+    unikraft-nur.url = "github:unikraft/nur";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, unikraft-nur }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        unikraft-pkgs = unikraft-nur.legacyPackages.${system};
         
         # Solo5 package definition
         solo5 = pkgs.stdenv.mkDerivation rec {
@@ -76,15 +78,21 @@
             
             # Solo5 unikernel environment
             solo5
+            
+            # KraftKit from official Unikraft NUR
+            unikraft-pkgs.kraftkit
           ];
           
           shellHook = ''
-            echo "🦄 Unikernel environment with Solo5 ready!"
+            echo "🦄 Unikernel environment with Solo5 and KraftKit ready!"
             echo ""
             echo "Available Solo5 tools:"
             ls -la ${solo5}/bin/solo5-* 2>/dev/null || echo "  Building Solo5..."
             echo ""
-            echo "Try: solo5-spt --version"
+            echo "KraftKit from official Unikraft NUR:"
+            kraft --version 2>/dev/null || echo "  Loading KraftKit..."
+            echo ""
+            echo "Try: kraft pkg list"
           '';
         };
       });
